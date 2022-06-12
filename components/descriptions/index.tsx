@@ -1,14 +1,14 @@
 /* eslint-disable react/no-array-index-key */
-import * as React from 'react';
 import classNames from 'classnames';
 import toArray from 'rc-util/lib/Children/toArray';
+import * as React from 'react';
+import { ConfigContext } from '../config-provider';
+import { cloneElement } from '../_util/reactNode';
 import type { Breakpoint, ScreenMap } from '../_util/responsiveObserve';
 import ResponsiveObserve, { responsiveArray } from '../_util/responsiveObserve';
 import warning from '../_util/warning';
-import { ConfigContext } from '../config-provider';
-import Row from './Row';
 import DescriptionsItem from './Item';
-import { cloneElement } from '../_util/reactNode';
+import Row from './Row';
 
 export interface DescriptionsContextProps {
   labelStyle?: React.CSSProperties;
@@ -64,26 +64,56 @@ function getFilledItem(
   return clone;
 }
 
+function getRowSpanIndex(childNodes, span, column) {
+  let start = span;
+  let idx;
+  for (let i = 0; i < childNodes.length; i++) {
+    const span: number = (childNodes[i].props?.span as number) || 1;
+    start += span;
+    if (start === column) {
+      idx = i;
+      break;
+    }
+  }
+  return idx;
+}
+
 function getRows(children: React.ReactNode, column: number) {
   const childNodes = toArray(children).filter(n => n);
+  childNodes.forEach((node, index) => {
+    const rowSpan: number | undefined = node.props?.rowSpan as number;
+    const span: number | undefined = (node.props?.span as number) || 1;
+    if (rowSpan > 1) {
+      let composeIdx = index + 1;
+      for (let i = 1; i < rowSpan; i++) {
+        const idx = composeIdx + getRowSpanIndex(childNodes.slice(composeIdx), span, column);
+        childNodes[idx] = cloneElement(childNodes[idx], {
+          offset: span,
+        });
+        composeIdx = idx + 1;
+      }
+    }
+  });
+
   const rows: React.ReactElement[][] = [];
 
   let tmpRow: React.ReactElement[] = [];
   let rowRestCol = column;
 
   childNodes.forEach((node, index) => {
-    const span: number | undefined = node.props?.span;
+    const span: number | undefined = node?.props?.span || 1;
+    const offset: number = node?.props?.offset || 0;
     const mergedSpan = span || 1;
+    const composedSpan = mergedSpan + offset;
 
-    // Additional handle last one
     if (index === childNodes.length - 1) {
       tmpRow.push(getFilledItem(node, span, rowRestCol));
       rows.push(tmpRow);
       return;
     }
 
-    if (mergedSpan < rowRestCol) {
-      rowRestCol -= mergedSpan;
+    if (composedSpan < rowRestCol) {
+      rowRestCol -= composedSpan;
       tmpRow.push(node);
     } else {
       tmpRow.push(getFilledItem(node, mergedSpan, rowRestCol));
@@ -110,7 +140,34 @@ export interface DescriptionsProps {
   colon?: boolean;
   labelStyle?: React.CSSProperties;
   contentStyle?: React.CSSProperties;
+  columns?: any[];
 }
+
+const getRows2 = (columns: any[][], children: React.ReactNode) => {
+  const rows: React.ReactElement[][] = [];
+  const childNodes = toArray(children).filter(n => n);
+  let curIdx = 0;
+  columns.forEach(column => {
+    const tmpRow: React.ReactElement[] = [];
+
+    column.forEach(node => {
+      const rowSpan: number = (node?.rowSpan as number) || 1;
+      const span: number = (node?.span as number) || 1;
+      tmpRow.push(
+        cloneElement(childNodes[curIdx++], {
+          span,
+          rowSpan,
+        }),
+      );
+    });
+
+    rows.push(tmpRow);
+  });
+
+  console.log(rows);
+
+  return rows;
+};
 
 function Descriptions({
   prefixCls: customizePrefixCls,
@@ -126,12 +183,12 @@ function Descriptions({
   size,
   labelStyle,
   contentStyle,
+  columns,
 }: DescriptionsProps) {
   const { getPrefixCls, direction } = React.useContext(ConfigContext);
   const prefixCls = getPrefixCls('descriptions', customizePrefixCls);
   const [screens, setScreens] = React.useState<ScreenMap>({});
   const mergedColumn = getColumn(column, screens);
-
   // Responsive
   React.useEffect(() => {
     const token = ResponsiveObserve.subscribe(newScreens => {
@@ -147,7 +204,13 @@ function Descriptions({
   }, []);
 
   // Children
-  const rows = getRows(children, mergedColumn);
+  let rows;
+  if (columns) {
+    rows = getRows2(columns, children);
+  } else {
+    rows = getRows(children, mergedColumn);
+  }
+
   const contextValue = React.useMemo(
     () => ({ labelStyle, contentStyle }),
     [labelStyle, contentStyle],

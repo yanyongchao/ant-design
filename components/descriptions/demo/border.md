@@ -14,13 +14,66 @@ title:
 Descriptions with border and background color.
 
 ```tsx
-import { Badge, Descriptions } from 'antd';
+import { Descriptions } from 'antd';
 import React from 'react';
 
+const columns = [
+  [
+    {
+      span: 1,
+      rowSpan: 1,
+    },
+    {
+      span: 2,
+      rowSpan: 2,
+    },
+    {
+      span: 2,
+      rowSpan: 2,
+    },
+  ],
+  [
+    {
+      span: 1,
+      rowSpan: 1,
+    },
+  ],
+  [
+    {
+      span: 5,
+      rowSpan: 1,
+    },
+  ],
+  [
+    {
+      span: 5,
+      rowSpan: 1,
+    },
+  ],
+];
+
 const App: React.FC = () => (
-  <Descriptions title="User Info" bordered>
-    <Descriptions.Item label="Product">Cloud Database</Descriptions.Item>
-    <Descriptions.Item label="Billing Mode">Prepaid</Descriptions.Item>
+  <Descriptions title="User Info" bordered column={5} columns={columns}>
+    <Descriptions.Item label="Automatic Renewal">YES</Descriptions.Item>
+    <Descriptions.Item label="Product" rowSpan={2} span={2}>
+      Cloud Database
+    </Descriptions.Item>
+    <Descriptions.Item label="Product" rowSpan={2} span={2}>
+      Cloud Database
+    </Descriptions.Item>
+    <Descriptions.Item label="Automatic Renewal" skip={4}>
+      YES
+    </Descriptions.Item>
+    <Descriptions.Item label="Automatic Renewal">YES</Descriptions.Item>
+    <Descriptions.Item label="Automatic Renewal">YES</Descriptions.Item>
+  </Descriptions>
+);
+
+export default App;
+```
+
+<!--
+<Descriptions.Item label="Billing Mode">Prepaid</Descriptions.Item>
     <Descriptions.Item label="Automatic Renewal">YES</Descriptions.Item>
     <Descriptions.Item label="Order time">2018-04-24 18:00:00</Descriptions.Item>
     <Descriptions.Item label="Usage Time" span={2}>
@@ -45,8 +98,4 @@ const App: React.FC = () => (
       <br />
       Region: East China 1<br />
     </Descriptions.Item>
-  </Descriptions>
-);
-
-export default App;
-```
+ -->

@@ -1,5 +1,5 @@
-import * as React from 'react';
 import classNames from 'classnames';
+import * as React from 'react';
 
 function notEmpty(val: any) {
   return val !== undefined && val !== null;
@@ -31,6 +31,7 @@ const Cell: React.FC<CellProps> = ({
   label,
   content,
   colon,
+  rowSpan,
 }) => {
   const Component = component as any;
 
@@ -46,6 +47,7 @@ const Cell: React.FC<CellProps> = ({
         )}
         style={style}
         colSpan={span}
+        rowSpan={rowSpan}
       >
         {notEmpty(label) && <span style={labelStyle}>{label}</span>}
         {notEmpty(content) && <span style={contentStyle}>{content}</span>}

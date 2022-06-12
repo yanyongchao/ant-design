@@ -1,8 +1,8 @@
 import * as React from 'react';
-import type { DescriptionsItemProps } from './Item';
-import Cell from './Cell';
 import type { DescriptionsContextProps } from '.';
 import { DescriptionsContext } from '.';
+import Cell from './Cell';
+import type { DescriptionsItemProps } from './Item';
 
 interface CellConfig {
   component: string | [string, string];
@@ -35,6 +35,7 @@ function renderCells(
           labelStyle,
           contentStyle,
           span = 1,
+          rowSpan = 1,
         },
         key,
       },
@@ -55,6 +56,7 @@ function renderCells(
             bordered={bordered}
             label={showLabel ? label : null}
             content={showContent ? children : null}
+            rowSpan={rowSpan}
           />
         );
       }
@@ -70,6 +72,7 @@ function renderCells(
           itemPrefixCls={itemPrefixCls}
           bordered={bordered}
           label={label}
+          rowSpan={rowSpan}
         />,
         <Cell
           key={`content-${key || index}`}
@@ -80,6 +83,7 @@ function renderCells(
           itemPrefixCls={itemPrefixCls}
           bordered={bordered}
           content={children}
+          rowSpan={rowSpan}
         />,
       ];
     },
